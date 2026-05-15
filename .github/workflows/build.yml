@@ -1,5 +1,4 @@
-name: Build BE3300 TurboACC
-
+name: Build BE3600 TurboACC
 on:
   workflow_dispatch:
 
@@ -7,28 +6,28 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: 安装编译依赖
+      - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y build-essential libncurses-dev gawk flex bison git python3 python3-pip unzip libssl-dev libelf-dev file
 
-      - name: 拉取 GL.iNet 官方SDK
+      - name: Clone GL.iNet SDK
         run: |
           git clone --depth 1 https://github.com/gl-inet/sdk.git openwrt
           cd openwrt
           ./download.sh ipq53xx
 
-      - name: 集成 TurboACC 高通专用(禁用SFE)
+      - name: Install TurboACC
         run: |
           cd openwrt
           curl -sSL https://raw.githubusercontent.com/chenmozhijin/turboacc/luci/add_turboacc.sh -o add_turboacc.sh
           chmod +x add_turboacc.sh
           ./add_turboacc.sh --no-sfe
 
-      - name: 写入BE3600专属配置
+      - name: Write config
         run: |
           cd openwrt
-          cat > .config <<EOF
+          cat > .config << EOF
 CONFIG_TARGET_ipq53xx=y
 CONFIG_TARGET_ipq53xx_ipq5312=y
 CONFIG_TARGET_PROFILE_glinet_gl_be3600=y
@@ -40,12 +39,12 @@ CONFIG_PACKAGE_nftables=y
 EOF
           make defconfig
 
-      - name: 开始编译固件
+      - name: Compile
         run: |
           cd openwrt
           make -j$(nproc)
 
-      - name: 打包上传固件
+      - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
           name: BE3600-TurboACC-Firmware
