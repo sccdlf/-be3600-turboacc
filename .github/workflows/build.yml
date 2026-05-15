@@ -1,4 +1,4 @@
-name: Build BE3600 TurboACC
+name: Build BE3600
 on:
   workflow_dispatch:
 
@@ -6,38 +6,34 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Install dependencies
+      - name: Setup
         run: sudo apt update && sudo apt install -y build-essential libncurses-dev gawk flex bison git python3 unzip libssl-dev libelf-dev
 
       - name: Clone SDK
         run: git clone --depth 1 https://github.com/gl-inet/sdk.git openwrt
 
-      - name: Download SDK files
+      - name: Download files
         run: cd openwrt && ./download.sh ipq53xx
 
-      - name: Install TurboACC
-        run: |
-          cd openwrt
-          curl -sSL https://raw.githubusercontent.com/chenmozhijin/turboacc/luci/add_turboacc.sh -o add_turboacc.sh
-          chmod +x add_turboacc.sh
-          ./add_turboacc.sh --no-sfe
+      - name: Add TurboACC
+        run: cd openwrt && curl -sSL https://raw.githubusercontent.com/chenmozhijin/turboacc/luci/add_turboacc.sh -o add_turboacc.sh && chmod +x add_turboacc.sh && ./add_turboacc.sh --no-sfe
 
-      - name: Apply config
+      - name: Config
         run: |
           cd openwrt
-          echo 'CONFIG_TARGET_ipq53xx=y' >> .config
-          echo 'CONFIG_TARGET_ipq53xx_ipq5312=y' >> .config
-          echo 'CONFIG_TARGET_PROFILE_glinet_gl_be3600=y' >> .config
-          echo 'CONFIG_PACKAGE_luci-app-turboacc=y' >> .config
-          echo 'CONFIG_PACKAGE_kmod-shortcut-fe=n' >> .config
-          echo 'CONFIG_PACKAGE_kmod-shortcut-fe-cm=n' >> .config
+          echo CONFIG_TARGET_ipq53xx=y >> .config
+          echo CONFIG_TARGET_ipq53xx_ipq5312=y >> .config
+          echo CONFIG_TARGET_PROFILE_glinet_gl_be3600=y >> .config
+          echo CONFIG_PACKAGE_luci-app-turboacc=y >> .config
+          echo CONFIG_PACKAGE_kmod-shortcut-fe=n >> .config
+          echo CONFIG_PACKAGE_kmod-shortcut-fe-cm=n >> .config
           make defconfig
 
-      - name: Compile firmware
+      - name: Compile
         run: cd openwrt && make -j$(nproc)
 
-      - name: Upload result
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: BE3600-Firmware
+          name: BE3600-TurboACC
           path: openwrt/bin/targets/ipq53xx/ipq5312/*.bin
