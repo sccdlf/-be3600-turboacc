@@ -6,36 +6,36 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Setup
+      - name: Install dependencies
         run: sudo apt update && sudo apt install -y build-essential libncurses-dev gawk flex bison git python3 unzip libssl-dev libelf-dev
 
-      - name: Clone SDK
-        run: git clone --depth 1 https://github.com/gl-inet/sdk.git openwrt
+      - name: Clone GL.iNet SDK
+        run: git clone --depth=1 https://github.com/gl-inet/sdk openwrt
 
-      - name: Download files
+      - name: Download IPQ53xx files
         run: cd openwrt && ./download.sh ipq53xx
 
-      - name: Add turboacc source
+      - name: Install TurboACC (GL.iNet 专用)
         run: |
           cd openwrt
-          echo "src-git turboacc https://github.com/chenmozhijin/turboacc.git;luci" >> feeds.conf.default
-          ./scripts/feeds update -a
-          ./scripts/feeds install -a
+          curl -sSL https://raw.githubusercontent.com/chenmozhijin/turboacc/luci/add_turboacc.sh -o add_turboacc.sh
+          chmod +x add_turboacc.sh
+          ./add_turboacc.sh --no-sfe
 
-      - name: Config
+      - name: Build config
         run: |
           cd openwrt
-          echo CONFIG_TARGET_ipq53xx=y >> .config
-          echo CONFIG_TARGET_ipq53xx_ipq5312=y >> .config
-          echo CONFIG_TARGET_PROFILE_glinet_gl_be3600=y >> .config
-          echo CONFIG_PACKAGE_luci-app-turboacc=y >> .config
-          echo CONFIG_PACKAGE_kmod-shortcut-fe=n >> .config
+          echo "CONFIG_TARGET_ipq53xx=y" > .config
+          echo "CONFIG_TARGET_ipq53xx_ipq5312=y" >> .config
+          echo "CONFIG_TARGET_PROFILE_glinet_gl_be3600=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-turboacc=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-shortcut-fe=n" >> .config
           make defconfig
 
-      - name: Compile
-        run: cd openwrt && make -j$(nproc)
+      - name: Compile firmware
+        run: cd openwrt && make -j$(nproc) V=s
 
-      - name: Upload
+      - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
           name: BE3600-TurboACC-Firmware
