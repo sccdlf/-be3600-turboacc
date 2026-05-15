@@ -15,8 +15,12 @@ jobs:
       - name: Download files
         run: cd openwrt && ./download.sh ipq53xx
 
-      - name: Add TurboACC
-        run: cd openwrt && curl -sSL https://raw.githubusercontent.com/chenmozhijin/turboacc/luci/add_turboacc.sh -o add_turboacc.sh && chmod +x add_turboacc.sh && ./add_turboacc.sh --no-sfe
+      - name: Add turboacc source
+        run: |
+          cd openwrt
+          echo "src-git turboacc https://github.com/chenmozhijin/turboacc.git;luci" >> feeds.conf.default
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
 
       - name: Config
         run: |
@@ -26,7 +30,6 @@ jobs:
           echo CONFIG_TARGET_PROFILE_glinet_gl_be3600=y >> .config
           echo CONFIG_PACKAGE_luci-app-turboacc=y >> .config
           echo CONFIG_PACKAGE_kmod-shortcut-fe=n >> .config
-          echo CONFIG_PACKAGE_kmod-shortcut-fe-cm=n >> .config
           make defconfig
 
       - name: Compile
@@ -35,5 +38,5 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: BE3600-TurboACC
+          name: BE3600-TurboACC-Firmware
           path: openwrt/bin/targets/ipq53xx/ipq5312/*.bin
