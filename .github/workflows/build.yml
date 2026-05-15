@@ -1,4 +1,4 @@
-name: Build BE3600 TurboACC
+name: Build BE3300 TurboACC
 
 on:
   workflow_dispatch:
@@ -10,8 +10,7 @@ jobs:
       - name: 安装编译依赖
         run: |
           sudo apt update
-          sudo apt install -y build-essential libncurses-dev gawk flex bison \
-            git python3 python3-pip unzip libssl-dev libelf-dev file
+          sudo apt install -y build-essential libncurses-dev gawk flex bison git python3 python3-pip unzip libssl-dev libelf-dev file
 
       - name: 拉取 GL.iNet 官方SDK
         run: |
@@ -49,5 +48,5 @@ EOF
       - name: 打包上传固件
         uses: actions/upload-artifact@v4
         with:
-          name: BE3600-TurboACC固件
+          name: BE3600-TurboACC-Firmware
           path: openwrt/bin/targets/ipq53xx/ipq5312/*.bin
